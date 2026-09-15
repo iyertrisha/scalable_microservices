@@ -1,0 +1,209 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: tracking-service
+  namespace: fleetflow
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: tracking-service
+  template:
+    metadata:
+      labels:
+        app: tracking-service
+    spec:
+      containers:
+        - name: tracking-service
+          image: fleetflow/tracking-service:local
+          imagePullPolicy: Never
+          ports:
+            - containerPort: 8083
+          envFrom:
+            - configMapRef:
+                name: fleetflow-config
+          env:
+            - name: TRACKING_ADDR
+              value: ":8083"
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8083
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: tracking-service
+  namespace: fleetflow
+spec:
+  selector:
+    app: tracking-service
+  ports:
+    - port: 8083
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: location-service
+  namespace: fleetflow
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: location-service
+  template:
+    metadata:
+      labels:
+        app: location-service
+    spec:
+      containers:
+        - name: location-service
+          image: fleetflow/location-service:local
+          imagePullPolicy: Never
+          ports:
+            - containerPort: 8084
+          envFrom:
+            - configMapRef:
+                name: fleetflow-config
+          env:
+            - name: LOCATION_ADDR
+              value: ":8084"
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8084
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: location-service
+  namespace: fleetflow
+spec:
+  selector:
+    app: location-service
+  ports:
+    - port: 8084
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: pricing-service
+  namespace: fleetflow
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: pricing-service
+  template:
+    metadata:
+      labels:
+        app: pricing-service
+    spec:
+      containers:
+        - name: pricing-service
+          image: fleetflow/pricing-service:local
+          imagePullPolicy: Never
+          ports:
+            - containerPort: 8085
+          envFrom:
+            - configMapRef:
+                name: fleetflow-config
+          env:
+            - name: PRICING_ADDR
+              value: ":8085"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: pricing-service
+  namespace: fleetflow
+spec:
+  selector:
+    app: pricing-service
+  ports:
+    - port: 8085
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: notification-service
+  namespace: fleetflow
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: notification-service
+  template:
+    metadata:
+      labels:
+        app: notification-service
+    spec:
+      containers:
+        - name: notification-service
+          image: fleetflow/notification-service:local
+          imagePullPolicy: Never
+          ports:
+            - containerPort: 8086
+          envFrom:
+            - configMapRef:
+                name: fleetflow-config
+          env:
+            - name: NOTIFICATION_ADDR
+              value: ":8086"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: notification-service
+  namespace: fleetflow
+spec:
+  selector:
+    app: notification-service
+  ports:
+    - port: 8086
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: fleetflow
+  namespace: fleetflow
+spec:
+  ingressClassName: nginx
+  rules:
+    - http:
+        paths:
+          - path: /orders
+            pathType: Prefix
+            backend:
+              service:
+                name: order-service
+                port:
+                  number: 8080
+          - path: /drivers
+            pathType: Prefix
+            backend:
+              service:
+                name: driver-service
+                port:
+                  number: 8081
+          - path: /tracking
+            pathType: Prefix
+            backend:
+              service:
+                name: tracking-service
+                port:
+                  number: 8083
+          - path: /location
+            pathType: Prefix
+            backend:
+              service:
+                name: location-service
+                port:
+                  number: 8084
+          - path: /health
+            pathType: Exact
+            backend:
+              service:
+                name: order-service
+                port:
+                  number: 8080

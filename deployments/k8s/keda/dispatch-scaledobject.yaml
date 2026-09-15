@@ -1,0 +1,22 @@
+# KEDA scales dispatch-service on Kafka consumer lag.
+# Install KEDA first: helm repo add kedacore https://kedacore.github.io/charts && helm install keda kedacore/keda -n keda --create-namespace
+apiVersion: keda.sh/v1alpha1
+kind: ScaledObject
+metadata:
+  name: dispatch-kafka-lag
+  namespace: fleetflow
+spec:
+  scaleTargetRef:
+    name: dispatch-service
+  pollingInterval: 15
+  cooldownPeriod: 60
+  minReplicaCount: 2
+  maxReplicaCount: 20
+  triggers:
+    - type: kafka
+      metadata:
+        bootstrapServers: kafka.fleetflow.svc.cluster.local:9092
+        consumerGroup: dispatch-service
+        topic: order.created
+        lagThreshold: "50"
+        offsetResetPolicy: latest

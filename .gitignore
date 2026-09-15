@@ -1,0 +1,10 @@
+node_modules/
+bin/
+*.exe
+.DS_Store
+.env
+.idea/
+.vscode/
+coverage.out
+loadtests/results.json
+.kind-enabled
