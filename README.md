@@ -1,6 +1,6 @@
 # FleetFlow
 
-Real-time package delivery / fleet orchestration backend — built step by step to learn **Go**, **Docker**, **Kubernetes**, and **microservices scalability** (IDFC Application Engineer prep).
+Real-time package delivery / fleet orchestration backend — built step by step to learn **Go**, **Docker**, **Kubernetes**, and **microservices scalability**
 
 ## Architecture
 
